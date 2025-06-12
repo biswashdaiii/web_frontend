@@ -34,16 +34,19 @@ const Login = () => {
       const res = await axios.post(url, payload);
       console.log("Success:", res.data);
 
-      if (res.data.token) {
-        localStorage.setItem("token", res.data.token);
-        alert(`${state} successful!`);
+      if (state === "Sign up") {
+  // Signup success — switch to login, clear password but keep email
+  alert("Account created successfully! Please login.");
+  setState("Login");
+  setPassword(""); // clear password field
+  // email remains intact to autofill login email input
+} else if (res.data.token) {
+  // Login success — save token and redirect
+  localStorage.setItem("token", res.data.token);
+  alert("Login successful!");
+  navigate("/home"); 
+}
 
-        if (state === "Login") {
-          navigate("/"); // Redirect to home after login
-        } else {
-          setState("Login"); // Switch to login form after signup
-        }
-      }
     } catch (error) {
       console.error("Error:", error.response?.data || error.message);
       alert("Failed: " + (error.response?.data?.message || error.message));
