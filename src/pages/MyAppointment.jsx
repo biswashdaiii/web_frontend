@@ -3,7 +3,7 @@ import React from 'react'
 const MyAppointment = () => {
   return (
     <div>
-      
+      appointment page
     </div>
   )
 }
