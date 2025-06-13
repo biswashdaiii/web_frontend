@@ -9,7 +9,7 @@ const navLinkClasses = ({ isActive }) =>
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // 👈 get current route
+  const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
