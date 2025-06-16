@@ -1,77 +1,72 @@
-import React, { useEffect, useState } from 'react';
-import { assets } from '../assets/assets';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom'; // 👈 added useLocation
-
-const navLinkClasses = ({ isActive }) =>
-  `py-1 px-2 transition duration-300 ${
-    isActive ? 'border-b-2 border-primary' : 'hover:border-b-2 hover:border-primary'
-  }`;
+import React, { useState } from "react";
+import { assets } from "../assets/assets";
+import { NavLink, useNavigate } from "react-router";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  useEffect(() => {
-    const checkToken = () => {
-      const token = localStorage.getItem("token");
-      setIsLoggedIn(!!token);
-    };
-
-    checkToken();
-    window.addEventListener("storage", checkToken);
-    return () => window.removeEventListener("storage", checkToken);
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    setIsLoggedIn(false);
-    navigate("/login");
-  };
-
-  // 👇 true only if logged in AND on /home route
-  const showProfileSection = isLoggedIn && location.pathname === "/home";
-
+  const [showMenu, setShowMenu] = useState(false);
+  const [token, setToken] = useState(true);
   return (
     <div className="flex items-center justify-between text-sm py-4 mb-5 border-b border-b-gray-400">
-      <img
-        className="w-44 cursor-pointer"
-        src={assets.logo}
-        alt="logo"
-        onClick={() => navigate('/')}
-      />
-
+      <img className="w-44 cursor-pointer" src={assets.logo} alt="" />
       <ul className="hidden md:flex items-center gap-5 font-medium">
-        <li><NavLink to="/" className={navLinkClasses}>Home</NavLink></li>
-        <li><NavLink to="/doctors" className={navLinkClasses}>All Doctors</NavLink></li>
-        <li><NavLink to="/chat" className={navLinkClasses}>Chat</NavLink></li>
-        <li><NavLink to="/about" className={navLinkClasses}>About</NavLink></li>
-        <li><NavLink to="/contact" className={navLinkClasses}>Contact</NavLink></li>
+        <NavLink to="/">
+          <li classNAme="py-1">Home</li>
+          <hr className="border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden" />
+        </NavLink>
+        <NavLink to="/docotrs">
+          <li classNAme="py-1">All Doctors</li>
+          <hr className="border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden" />
+        </NavLink>
+        <NavLink to="chat">
+          <li classNAme="py-1">chat</li>
+          <hr className="border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden" />
+        </NavLink>
+        <NavLink to="/contact">
+          <li classNAme="py-1">Contact</li>
+          <hr className="border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden" />
+        </NavLink>
+        <NavLink to="about">
+          <li classNAme="py-1">About</li>
+          <hr className="border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden" />
+        </NavLink>
       </ul>
-
       <div className="flex items-center gap-4">
-        {showProfileSection ? (
+        {token ? (
           <div className="flex items-center gap-2 cursor-pointer group relative">
-            <img
-              src={assets.profile_pic}
-              alt="Profile"
-              className="w-8 h-8 rounded-full"
-            />
-            <img src={assets.dropdown_icon} alt="Dropdown" className="w-4 h-4" />
-            <div className="absolute top-full right-0 mt-2 text-base font-medium text-gray-600 z-20 hidden group-hover:block">
-              <div className="min-w-[12rem] bg-stone-100 rounded flex flex-col gap-4 p-4 shadow-lg">
-                <p className="hover:text-black cursor-pointer" onClick={() => navigate('/my-profile')}>MyProfile</p>
-                <p className="hover:text-black cursor-pointer" onClick={() => navigate('/my-appointments')}>MyAppointment</p>
-                <p className="hover:text-black cursor-pointer" onClick={handleLogout}>Logout</p>
+            <img className="w-8 rounded-full" src={assets.profile_pic} alt="" />
+            <img className="w-2.5" src={assets.dropdown_icon} alt="" />
+            <div className="absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 z-20 hidden group-hover:block">
+              <div className="min-w-48 bg-stone-100 rounded-flex flex-col gap-4 p-4">
+                <p
+                  onClick={() => navigate("my-profile")}
+                  className="hover:text-black cursor-pointer"
+                >
+                  My profile
+                </p>
+                <p
+                  onClick={() => navigate("my-appointments")}
+                  className="hover:text-black cursor-pointer"
+                >
+                  My AppointMents
+                </p>
+                <p
+                  onClick={() => setToken(false)}
+                  className="hover:text-black cursor-pointer"
+                >
+                  Log Out
+                </p>
               </div>
             </div>
           </div>
         ) : (
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => navigate("/login")}
             className="bg-primary text-white px-8 py-3 rounded-full font-light hidden md:block"
           >
-            Create Account
+            {" "}
+            create button
           </button>
         )}
       </div>

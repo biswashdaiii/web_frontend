@@ -10,7 +10,8 @@ import Appointment from './pages/Appointment'
 import Navbar from './components/Navbar'
 import About from './pages/About'
 import Chat from './pages/chat'
-import { useNavigate } from "react-router-dom";
+import Footer from './components/Footer'
+
 const App = () => {
   return (
     <div className='mx-4 sm:mx-[10%]'>
@@ -18,7 +19,6 @@ const App = () => {
       <Routes>
         
         <Route path='/' element={<Home />} />
-        <Route path='/home' element={<Home />} />
         <Route path='/doctors' element={<Doctors />} />
         <Route path='/doctors/:speciality' element={<Home />} />
         <Route path='/login' element={<Login />} />
@@ -29,6 +29,7 @@ const App = () => {
         <Route path='/appointment/:docId' element={<Appointment />} />
         <Route path='/chat' element={<Chat />} />
       </Routes>
+      <Footer/>
     </div>
   )
 }
