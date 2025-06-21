@@ -13,13 +13,15 @@ const Login = () => {
     event.preventDefault();
     try {
       if (state === 'Admin') {
-        const { data } = await axios.post(backendUrl + '/api/admni/login', {
+        const { data } = await axios.post(backendUrl + '/api/admin/login', {
           email,
           password,
         });
+        console.log("login response data",data)
         if (data.success) {
           localStorage.setItem('aToken', data.token);
           setAToken(data.token);
+          toast.success("admin logged in successfully")
         } else {
           toast.error(data.message);
         }
