@@ -1,39 +1,57 @@
-import React, { useContext, useEffect } from 'react';
-import { AdminContext } from '../../context/AdminContext';
+import React, { useContext, useEffect } from "react";
+import { AdminContext } from "../../context/AdminContext";
 
 const DoctorList = () => {
-  const { doctors, aToken, getAllDoctors, backendUrl } = useContext(AdminContext);
+  const { doctors, aToken, getAllDoctors, backendUrl } =
+    useContext(AdminContext);
 
   useEffect(() => {
-  if (aToken) {
-    getAllDoctors(); 
-  }
-}, [aToken]);
+    if (aToken) {
+      getAllDoctors();
+    }
+  }, [aToken]);
 
+  // Log the doctors array to see what data you have
+  console.log("Doctors data from context:", doctors);
+  console.log(import.meta.env.VITE_BACKEND_URL); // should log http://localhost:5050
 
   return (
     <div>
-      {doctors.length === 0 && <p>No doctors found</p>}
+      <h1>All Doctors</h1>
+      <div>
+        {doctors.length === 0 && <p>No doctors found yet.</p>}
+        {doctors.map((item, index) => {
+          console.log(`${backendUrl}/uploads/${item.image}`);
+          // Log each item to inspect its properties
+          console.log(`Doctor #${index}:`, item);
 
-      {doctors.map((doc) => {
-        // Build full image URL using backendUrl + '/uploads/' + filename
-        const imageUrl = doc.image ? `${backendUrl}/uploads/${doc.image}` : '/default-doctor.png';
+          // Use fallback for image if missing or invalid
+          const cleanedPath = item.image
+            .replace(/^uploads[\\/]/, "")
+            .replaceAll("\\", "/");
+          const imageUrl = item.image
+            ? `${backendUrl}/uploads/${cleanedPath}`
+            : "/default-doctor.png";
 
-        return (
-          <div key={doc._id} style={{ marginBottom: '20px' }}>
-            <h3>{doc.name}</h3>
-            <img
-              src={imageUrl}
-              alt={doc.name}
-              style={{ width: '150px', height: '150px', objectFit: 'cover' }}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = '/default-doctor.png'; // fallback if image fails
-              }}
-            />
-          </div>
-        );
-      })}
+          return (
+            <div key={index}>
+              <img
+                src={imageUrl}
+                alt={item.name || "Doctor"}
+                style={{ width: "150px", height: "150px", objectFit: "cover" }}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "/default-doctor.png";
+                }}
+              />
+              <div>
+                <p>{item.name}</p>
+                <p>{item.speciality}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
