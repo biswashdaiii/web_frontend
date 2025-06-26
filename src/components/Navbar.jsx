@@ -12,23 +12,23 @@ const Navbar = () => {
       <img onClick={()=>navigate('/')} className="w-44 cursor-pointer" src={assets.logo} alt="" />
       <ul className="hidden md:flex items-center gap-5 font-medium">
         <NavLink to="/">
-          <li classNAme="py-1">Home</li>
+          <li className="py-1">Home</li>
           <hr className="border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden" />
         </NavLink>
         <NavLink to="/doctors">
-          <li classNAme="py-1">All Doctors</li>
+          <li className="py-1">All Doctors</li>
           <hr className="border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden" />
         </NavLink>
         <NavLink to="chat">
-          <li classNAme="py-1">chat</li>
+          <li className="py-1">chat</li>
           <hr className="border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden" />
         </NavLink>
         <NavLink to="/contact">
-          <li classNAme="py-1">Contact</li>
+          <li className="py-1">Contact</li>
           <hr className="border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden" />
         </NavLink>
         <NavLink to="about">
-          <li classNAme="py-1">About</li>
+          <li className="py-1">About</li>
           <hr className="border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden" />
         </NavLink>
       </ul>

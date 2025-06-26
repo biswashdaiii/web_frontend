@@ -1,6 +1,7 @@
 import { createContext, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+
 // Create the context
 export const AdminContext = createContext();
 
@@ -31,6 +32,19 @@ const AdminContextProvider = (props) => {
     toast.error("Error fetching doctors");
   }
 };
+const changeAvaiablility=async(docId)=>{
+  try {
+    const{data}=await axios.post(backendUrl+"/api/admin/change-availability",{docId},{headers:{aToken}})
+    if(data.success){
+      toast.success(data.message)
+      getAllDoctors()
+    }else{
+      toast.error(data.message)
+    }
+  } catch (error) {
+     toast.error(error.message);
+  }
+}
 
   const value = {
     aToken,
@@ -38,6 +52,7 @@ const AdminContextProvider = (props) => {
     backendUrl,
     doctors,
     getAllDoctors,
+    changeAvaiablility
   };
 
   return (
