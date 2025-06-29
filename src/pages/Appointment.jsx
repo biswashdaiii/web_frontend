@@ -8,7 +8,8 @@ import axios from "axios";
 
 const Appointment = () => {
   const { docId } = useParams();
-  const { doctors, currencySymol, backendUrl, token, getDoctorsData } = useContext(AppContext);
+  const { doctors, currencySymol, backendUrl, token, getDoctorsData } =
+    useContext(AppContext);
   const navigate = useNavigate();
 
   const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
@@ -35,7 +36,9 @@ const Appointment = () => {
       endTime.setHours(21, 0, 0, 0);
 
       if (i === 0) {
-        currentDate.setHours(currentDate.getHours() > 10 ? currentDate.getHours() + 1 : 10);
+        currentDate.setHours(
+          currentDate.getHours() > 10 ? currentDate.getHours() + 1 : 10
+        );
         currentDate.setMinutes(currentDate.getMinutes() > 30 ? 30 : 0);
       } else {
         currentDate.setHours(10);
@@ -123,7 +126,9 @@ const Appointment = () => {
             </p>
 
             <div className="flex items-center gap-2 text-sm mt-1 text-gray-600">
-              <p>{docInfo.degree} - {docInfo.speciality}</p>
+              <p>
+                {docInfo.degree} - {docInfo.speciality}
+              </p>
               <button className="py-0.5 px-2 border text-xs rounded-full">
                 {docInfo.experience}
               </button>
@@ -133,11 +138,17 @@ const Appointment = () => {
               <p className="flex items-center gap-1 text-sm font-medium text-gray-900">
                 About <img src={assets.info_icon} alt="Info" />
               </p>
-              <p className="text-sm text-gray-500 max-w-[700px]">{docInfo.about}</p>
+              <p className="text-sm text-gray-500 max-w-[700px]">
+                {docInfo.about}
+              </p>
             </div>
 
             <p className="text-gray-500 font-medium mt-4">
-              Appointment fee: <span className="text-gray-600">{currencySymol}{docInfo.fees}</span>
+              Appointment fee:{" "}
+              <span className="text-gray-600">
+                {currencySymol}:
+                {docInfo.fee}
+              </span>
             </p>
           </div>
         </div>
@@ -148,18 +159,25 @@ const Appointment = () => {
 
           {/* Days */}
           <div className="flex gap-3 overflow-x-auto mt-2">
-            {docSlot.map((daySlots, index) => (
-              <div
-                key={index}
-                onClick={() => setSlotIndex(index)}
-                className={`text-center py-4 px-3 min-w-16 rounded-full cursor-pointer ${
-                  slotIndex === index ? "bg-primary text-white" : "border border-gray-300"
-                }`}
-              >
-                <p>{daysOfWeek[daySlots[0].datetime.getDay()]}</p>
-                <p>{daySlots[0].datetime.getDate()}</p>
-              </div>
-            ))}
+            {docSlot.map((daySlots, index) => {
+              const firstSlot = daySlots?.[0];
+              if (!firstSlot || !firstSlot.datetime) return null;
+
+              return (
+                <div
+                  key={index}
+                  onClick={() => setSlotIndex(index)}
+                  className={`text-center py-4 px-3 min-w-16 rounded-full cursor-pointer ${
+                    slotIndex === index
+                      ? "bg-primary text-white"
+                      : "border border-gray-300"
+                  }`}
+                >
+                  <p>{daysOfWeek[firstSlot.datetime.getDay()]}</p>
+                  <p>{firstSlot.datetime.getDate()}</p>
+                </div>
+              );
+            })}
           </div>
 
           {/* Time slots */}
