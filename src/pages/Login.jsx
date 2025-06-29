@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { AppContext } from "../context/AppContext";
 
 const Login = () => {
+  const { backendUrl, token, setToken } = useContext(AppContext);
   const [state, setState] = useState("Sign up");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,10 +16,10 @@ const Login = () => {
   const onSubmitHandler = async (event) => {
     event.preventDefault();
 
-    const url =
-      state === "Sign up"
-        ? "http://localhost:5050/api/auth/register"
-        : "http://localhost:5050/api/auth/login";
+   const url =
+  state === "Sign up"
+    ? "http://localhost:5050/api/auth/register"
+    : "http://localhost:5050/api/auth/login";
 
     const payload =
       state === "Sign up"
@@ -42,6 +44,7 @@ const Login = () => {
         setPassword("");
       } else if (res.data.token) {
         localStorage.setItem("token", res.data.token);
+        setToken(res.data.token); // ✅ This updates AppContext
         toast.success("Login successful!");
         navigate("/");
       }
