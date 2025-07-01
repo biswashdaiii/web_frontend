@@ -1,12 +1,30 @@
 import { useState } from "react";
 import { createContext } from "react";
+import axios from "axios"
+import {toast} from "react-toastify"
 
 export const DoctorContext=createContext()
 
 const DoctorContextProvider=(props)=>{
    const backendUrl=import.meta.env.VITE_BACKEND_URL
    const [dToken,setDToken]=useState(localStorage.getItem("dToken") || "")
-    const value={
+   const [appointments,setAppointments]=useState([])
+   
+   const getAppointments =async()=>{
+    try {
+        const {data}=axios.get(backendUrl+"/'api/doctor/profile",{headers:{dToken}})
+
+    if(data.success){
+        setAppointments(data.appointments.reverse())
+    }else{
+        toast.error(data.message)
+    }
+    } catch (error) {
+        
+    }
+   }
+
+   const value={
         dToken,setDToken,backendUrl
 
     }

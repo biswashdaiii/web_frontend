@@ -28,7 +28,7 @@ const Login = () => {
           toast.error(data.message);
         }
       } else {
-        // Add Doctor login logic here if needed
+        // Add Doctor login logic here
       const {data}=await axios.post(backendUrl+"/api/doctor/login",{email,password})
       if (data.success) {
           localStorage.setItem('dToken', data.token);
