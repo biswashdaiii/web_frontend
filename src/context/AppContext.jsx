@@ -2,7 +2,7 @@ import { createContext, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { doctors as staticDoctors } from "../assets/assets";
-
+import { ToastContainer } from "react-toastify";
 
 export const AppContext = createContext();
 
@@ -35,6 +35,7 @@ const AppContextProvider = (props) => {
     token,
     setToken,
     backendUrl,
+    getDoctorsData
   };
 
   return (

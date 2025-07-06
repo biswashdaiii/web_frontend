@@ -71,19 +71,30 @@ const Appointment = () => {
       toast.warn("Login to book appointment");
       return navigate("/login");
     }
+    const currentUser=JSON.parse(localStorage.getItem("user"));
+    const userId = currentUser?.id;
+    if (!userId) {
+      toast.warn("User ID not found, please login again");
+      return navigate("/login");
+    }
 
     try {
+      
       const date = docSlot[slotIndex][0].datetime;
-      const day = date.getDate();
-      const month = date.getMonth() + 1;
-      const year = date.getFullYear();
+      let day = date.getDate();
+      let month = date.getMonth() + 1;
+      let year = date.getFullYear();
 
       const slotDate = `${day}_${month}_${year}`;
+      // console.log("Selected Date:", slotDate);
       const { data } = await axios.post(
         `${backendUrl}/api/user/book-appointment`,
-        { docId, slotDate, slotTime },
+        { userId,docId, slotDate, slotTime },
         { headers: { token } }
+        
       );
+      
+      console.log("Booking Response:", data);
 
       if (data.success) {
         toast.success(data.message);
@@ -97,10 +108,18 @@ const Appointment = () => {
       console.error(error);
     }
   };
-
-  useEffect(() => {
-    fetchDocInfo();
-  }, [doctors, docId]);
+  
+useEffect(() => {
+  if (doctors.length === 0) {
+    console.log("Doctors list empty, waiting to load...");
+    return;
+  }
+  console.log("docid from url:", docId);
+  const found = doctors.find((doc) => doc._id === docId);
+  console.log("Matching doctor _id found:", found?._id);
+  console.log("IDs match:", found?._id === docId);
+  setDocInfo(found);
+}, [doctors, docId]);
 
   useEffect(() => {
     if (docInfo) getAvailableSlot();
