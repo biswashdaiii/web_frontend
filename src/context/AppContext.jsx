@@ -41,6 +41,12 @@ const AppContextProvider = (props) => {
   return (
     <AppContext.Provider value={value}>
       {props.children}
+        <ToastContainer
+      position="top-right"
+      autoClose={3000}
+      pauseOnHover
+      theme="colored"
+    />
     </AppContext.Provider>
   );
 };
