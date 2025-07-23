@@ -11,9 +11,10 @@ import AllAppointments from './pages/Admin/AllAppointments';
 import AddDoctor from './pages/Admin/AddDoctor';
 import DoctorList from './pages/Admin/DoctorList';
 import { DoctorContext } from './context/DcotortContext';
-import DoctorDashboard from './pages/Doctor/DoctorDashboard';
+// import DoctorDashboard from './pages/Doctor/DoctorDashboard';
 import DoctorAppointment from './pages/Doctor/DoctorAppointment';
 import DoctorProfile from './pages/Doctor/DoctorProfile';
+import Chat from './pages/Doctor/Chat';
 const App = () => {
 const{aToken}=useContext(AdminContext)
 const{dToken}=useContext(DoctorContext)
@@ -32,7 +33,7 @@ const{dToken}=useContext(DoctorContext)
           <Route path="/doctor-list" element={<DoctorList/>}/>
        
          {/*Doctor Route */}
-          <Route path="/doctor-dashboard" element={<DoctorDashboard/>}/>
+          <Route path="/doctor-chat" element={<Chat/>}/>
           <Route path="/doctor-appointments" element={<DoctorAppointment/>}/>
           <Route path="/doctor-profile" element={<DoctorProfile/>}/>
         </Routes>
