@@ -12,13 +12,11 @@ const MyAppointment = () => {
   const getUserAppointments = async () => {
     try {
       const url = `${backendUrl}/api/user/my-appointments`;
-      console.log("Requesting URL:", url);
       const { data } = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (data.success) {
         setAppointments(data.appointments.reverse());
-        console.log(data.appointments);
       }
     } catch (error) {
       console.error(error);
@@ -48,9 +46,29 @@ const MyAppointment = () => {
     }
   };
 
-  // ✅ Correctly placed inside the component
-const goToChat = (appointment) => {
-  navigate(`/chat/${appointment._id}`);
+  // Updated handlePayment using appointmentId (not productId)
+ const handlePayment = async (appointment) => {
+  try {
+    // const amount = appointment.fee || 100;  // fallback to 100 for testing
+    const amount = appointment.fee && appointment.fee > 0 ? appointment.fee : 100;
+
+    const appointmentId = appointment._id;
+
+    const response = await axios.post(
+      `${backendUrl}/initiate-payment`,
+      { amount, appointmentId },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (response.data.url) {
+      window.location.href = response.data.url;
+    } else {
+      toast.error("Payment initiation failed");
+    }
+  } catch (error) {
+    console.error("Error initiating payment:", error);
+    toast.error("Payment initiation error");
+  }
 };
 
 
@@ -62,9 +80,7 @@ const goToChat = (appointment) => {
 
   return (
     <div className="min-h-screen px-4 py-6">
-      <h2 className="text-xl font-semibold mb-6 text-gray-800">
-        My Appointments
-      </h2>
+      <h2 className="text-xl font-semibold mb-6 text-gray-800">My Appointments</h2>
 
       <div className="flex flex-col gap-4">
         {appointments.length === 0 ? (
@@ -96,19 +112,23 @@ const goToChat = (appointment) => {
                   <p className="text-gray-600">
                     <span className="font-medium">Address:</span>
                   </p>
-                  <p className="text-gray-600">
-                    {item.docData?.address?.line1}
-                  </p>
+                  <p className="text-gray-600">{item.docData?.address?.line1}</p>
                   <p className="text-gray-600 mt-1">
                     <span className="font-medium">Date & Time:</span>{" "}
                     {item.slotDate} | {item.slotTime}
+                  </p>
+                  <p className="text-gray-600 mt-1">
+                    <span className="font-medium">Fee:</span> Rs {item.fee || "N/A"}
                   </p>
                 </div>
               </div>
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-2 ml-auto">
-                <button className="px-4 py-2 border border-gray-400 rounded hover:bg-primary hover:text-white transition">
+                <button
+                  onClick={() => handlePayment(item)}
+                  className="px-4 py-2 border border-gray-400 rounded hover:bg-primary hover:text-white transition"
+                >
                   Pay Online
                 </button>
 
@@ -120,7 +140,6 @@ const goToChat = (appointment) => {
                 </button>
 
                 <button
-                  onClick={() => goToChat(item)}
                   className="px-4 py-2 border border-blue-400 rounded hover:bg-blue-100 hover:text-blue-600 transition flex items-center gap-1"
                   title="Chat with Doctor"
                 >
