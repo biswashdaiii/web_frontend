@@ -8,7 +8,7 @@ import axios from "axios";
 
 const Appointment = () => {
   const { docId } = useParams();
-  const { doctors, currencySymol, backendUrl, token, getDoctorsData } =
+  const { doctors, currencySymol,userData, backendUrl, token, getDoctorsData } =
     useContext(AppContext);
   const navigate = useNavigate();
 
@@ -66,48 +66,88 @@ const Appointment = () => {
     setDocSlot(weeklySlots);
   };
 
-  const bookAppointment = async () => {
-    if (!token) {
-      toast.warn("Login to book appointment");
-      return navigate("/login");
-    }
-    const currentUser=JSON.parse(localStorage.getItem("user"));
-    const userId = currentUser?.id;
-    if (!userId) {
-      toast.warn("User ID not found, please login again");
-      return navigate("/login");
-    }
+const bookAppointment = async () => {
+  console.log("Token from context:", token);
+  console.log("UserData from context:", userData);
 
-    try {
-      
-      const date = docSlot[slotIndex][0].datetime;
-      let day = date.getDate();
-      let month = date.getMonth() + 1;
-      let year = date.getFullYear();
+  // Check if token exists
+  if (!token) {
+    toast.warn("Login to book appointment");
+    console.log("Redirecting to login because token is missing");
+    return navigate("/login");
+  }
 
-      const slotDate = `${day}_${month}_${year}`;
-      // console.log("Selected Date:", slotDate);
-      const { data } = await axios.post(
-        `${backendUrl}/api/user/book-appointment`,
-        { userId,docId, slotDate, slotTime },
-        { headers: { token } }
-        
-      );
-      
-      console.log("Booking Response:", data);
-
-      if (data.success) {
-        toast.success(data.message);
-        getDoctorsData();
-        navigate("/my-appointments");
-      } else {
-        toast.error(data.message);
+  // Get current user from context or fallback to localStorage safely
+  let currentUser = userData;
+  if (!currentUser) {
+    const userFromStorage = localStorage.getItem("user");
+    if (userFromStorage) {
+      try {
+        currentUser = JSON.parse(userFromStorage);
+      } catch (parseError) {
+        console.error("Failed to parse user from localStorage:", parseError);
       }
-    } catch (error) {
+    }
+  }
+
+  console.log("Current user:", currentUser);
+  const userId = currentUser?._id || currentUser?.id;
+  console.log("User ID:", userId);
+
+  // If no user ID, redirect to login
+  if (!userId) {
+    toast.warn("User ID not found, please login again");
+    console.log("Redirecting to login because user ID is missing");
+    return navigate("/login");
+  }
+
+  try {
+    // Make sure you have docSlot and slotIndex selected properly
+    if (!docSlot.length || slotIndex >= docSlot.length || !docSlot[slotIndex].length) {
+      toast.warn("Please select a valid date and time slot");
+      return;
+    }
+
+    const date = docSlot[slotIndex][0].datetime;
+    let day = date.getDate();
+    let month = date.getMonth() + 1;
+    let year = date.getFullYear();
+
+    const slotDate = `${day}_${month}_${year}`;
+    console.log("Booking data:", { userId, docId, slotDate, slotTime });
+
+    const { data } = await axios.post(
+      `${backendUrl}/api/user/book-appointment`,
+      { userId, docId, slotDate, slotTime },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log("Booking Response:", data);
+
+    if (data.success) {
+      toast.success(data.message);
+      getDoctorsData(); // Refresh doctors if needed
+      navigate("/my-appointments");
+    } else {
+      toast.error(data.message);
+    }
+  } catch (error) {
+    if (error.response) {
+      console.error("Response error data:", error.response.data);
+      toast.error(error.response.data.message || "Booking failed");
+    } else {
       toast.error("Something went wrong");
       console.error(error);
     }
-  };
+  }
+};
+
+
+
   
 useEffect(() => {
   if (doctors.length === 0) {

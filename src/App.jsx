@@ -14,7 +14,8 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
 import Success from "./components/Success"; // Add your payment success component
-import Failure from "./components/Failure"; // Add your payment failure component
+import Failure from "./components/Failure";
+import { Loader } from "lucide-react";
 
 const App = () => {
   return (
@@ -33,11 +34,7 @@ const App = () => {
         <Route path="/appointment/:docId" element={<Appointment />} />
 
         {/* Chat routes */}
-        <Route
-          path="/chat"
-          element={<div>Please select an appointment to chat.</div>}
-        />
-        <Route path="/chat/:doctorId" element={<ChatPage />} />
+        <Route path="/chat" element={<ChatPage />} />
 
         {/* Payment result routes */}
         <Route path="/my-appointments" element={<MyAppointment />} />

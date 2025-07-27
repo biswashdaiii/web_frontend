@@ -35,6 +35,8 @@ const AppContextProvider = (props) => {
   // This effect handles user session persistence
   useEffect(() => {
     if (token && userData) {
+      console.log("AppContextProvider token:", token);
+      console.log("AppContextProvider userData:", userData);
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(userData));
     } else {

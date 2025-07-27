@@ -5,12 +5,15 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 const MyAppointment = () => {
-  const { backendUrl, token } = useContext(AppContext);
+  const { backendUrl, token ,userData} = useContext(AppContext);
   const [appointments, setAppointments] = useState([]);
   const navigate = useNavigate();
 
   const getUserAppointments = async () => {
     try {
+      console.log("Token before fetching appointments:", token);
+      console.log("Fetching appointments for user:", userData);
+  console.log("Using token:", token);
       const url = `${backendUrl}/api/user/my-appointments`;
       const { data } = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -47,32 +50,33 @@ const MyAppointment = () => {
   };
 
   // Updated handlePayment using appointmentId (not productId)
- const handlePayment = async (appointment) => {
-  try {
-    // const amount = appointment.fee || 100;  // fallback to 100 for testing
-    const amount = appointment.fee && appointment.fee > 0 ? appointment.fee : 100;
+  const handlePayment = async (appointment) => {
+    try {
+      // const amount = appointment.fee || 100;  // fallback to 100 for testing
+      const amount =
+        appointment.fee && appointment.fee > 0 ? appointment.fee : 100;
 
-    const appointmentId = appointment._id;
+      const appointmentId = appointment._id;
 
-    const response = await axios.post(
-      `${backendUrl}/initiate-payment`,
-      { amount, appointmentId },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+      const response = await axios.post(
+        `${backendUrl}/initiate-payment`,
+        { amount, appointmentId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    if (response.data.url) {
-      window.location.href = response.data.url;
-    } else {
-      toast.error("Payment initiation failed");
+      if (response.data.url) {
+        window.location.href = response.data.url;
+      } else {
+        toast.error("Payment initiation failed");
+      }
+    } catch (error) {
+      console.error("Error initiating payment:", error);
+      toast.error("Payment initiation error");
     }
-  } catch (error) {
-    console.error("Error initiating payment:", error);
-    toast.error("Payment initiation error");
-  }
-};
-
+  };
 
   useEffect(() => {
+   console.log("Token before fetching appointments:", token);
     if (token) {
       getUserAppointments();
     }
@@ -80,7 +84,9 @@ const MyAppointment = () => {
 
   return (
     <div className="min-h-screen px-4 py-6">
-      <h2 className="text-xl font-semibold mb-6 text-gray-800">My Appointments</h2>
+      <h2 className="text-xl font-semibold mb-6 text-gray-800">
+        My Appointments
+      </h2>
 
       <div className="flex flex-col gap-4">
         {appointments.length === 0 ? (
@@ -112,13 +118,16 @@ const MyAppointment = () => {
                   <p className="text-gray-600">
                     <span className="font-medium">Address:</span>
                   </p>
-                  <p className="text-gray-600">{item.docData?.address?.line1}</p>
+                  <p className="text-gray-600">
+                    {item.docData?.address?.line1}
+                  </p>
                   <p className="text-gray-600 mt-1">
                     <span className="font-medium">Date & Time:</span>{" "}
                     {item.slotDate} | {item.slotTime}
                   </p>
                   <p className="text-gray-600 mt-1">
-                    <span className="font-medium">Fee:</span> Rs {item.fee || "N/A"}
+                    <span className="font-medium">Fee:</span> Rs{" "}
+                    {item.fee || "N/A"}
                   </p>
                 </div>
               </div>
@@ -140,6 +149,9 @@ const MyAppointment = () => {
                 </button>
 
                 <button
+                  onClick={() =>
+                    navigate("/chat", { state: { doctor: item.docData } })
+                  }
                   className="px-4 py-2 border border-blue-400 rounded hover:bg-blue-100 hover:text-blue-600 transition flex items-center gap-1"
                   title="Chat with Doctor"
                 >

@@ -1,40 +1,34 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import ChatWindow from '../components/ChatWindow.jsx';
-import { AppContext } from '../context/AppContext.jsx';
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { useChatStore } from "../store/useChatStore";
+import ChatContainer from "../components/chat/chatContainer.jsx";
 
 const ChatPage = () => {
-  const { doctorId, doctorName } = useParams();
-  const { userData, loadingUser } = useContext(AppContext);
-  const navigate = useNavigate();
+  const location = useLocation();
+  const doctor = location.state?.doctor; // ✅ Get doctor from navigation
 
-  const [loading, setLoading] = useState(true);
+  const {
+    setSelectedDoctor,
+    getMessages,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+  } = useChatStore();
 
   useEffect(() => {
-    if (loadingUser) {
-      // Still loading user info, wait
-      return;
-    }
+    if (!doctor) return;
 
-    if (!userData || !userData._id) {
-      navigate('/login');
-    } else {
-      setLoading(false);
-    }
-  }, [loadingUser, userData, navigate]);
+    setSelectedDoctor(doctor);
+    getMessages(doctor._id);
+    subscribeToMessages();
 
-  if (loading) {
-    return <div>Loading user info...</div>;
-  }
+    return () => {
+      unsubscribeFromMessages();
+    };
+  }, [doctor?._id]);
 
-  return (
-    <div className="container mx-auto p-4">
-      <ChatWindow
-        chatPartnerId={doctorId}
-        chatPartnerName={decodeURIComponent(doctorName)}
-      />
-    </div>
-  );
+  if (!doctor) return <div>Please select an appointment to chat.</div>;
+
+  return <ChatContainer />;
 };
 
 export default ChatPage;

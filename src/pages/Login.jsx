@@ -6,7 +6,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { AppContext } from "../context/AppContext";
 
 const Login = () => {
-  const { backendUrl, token, setToken } = useContext(AppContext);
+const { backendUrl, token, setToken, setUserData } = useContext(AppContext);
+
   const [state, setState] = useState("Sign up");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,9 +44,11 @@ const Login = () => {
         setState("Login");
         setPassword("");
       } else if (res.data.token && res.data.user) {
+             setToken(res.data.token);
+             setUserData(res.data.user)
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user)); // ✅ Store user info
-        setToken(res.data.token);
+     
         toast.success("Login successful!");
         navigate("/");
       }
