@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { AdminContext } from '../context/AdminContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { DoctorContext } from '../context/DcotortContext';
+import { DoctorContext } from '../context/DcotorContext';
 
 const Login = () => {
   const [state, setState] = useState('Admin');

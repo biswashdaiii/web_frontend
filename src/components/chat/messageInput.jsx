@@ -11,8 +11,8 @@ const MessageInput = () => {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
+    if (!file || !file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file");
       return;
     }
 
@@ -38,72 +38,81 @@ const MessageInput = () => {
         image: imagePreview,
       });
 
-      // Clear form
       setText("");
       setImagePreview(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (error) {
       console.error("Failed to send message:", error);
+      toast.error("Failed to send message");
     }
   };
 
   return (
-    <div className="p-4 w-full">
+    <div className="p-4 bg-white border-t border-gray-200 rounded-b-lg shadow-md">
       {imagePreview && (
-        <div className="mb-3 flex items-center gap-2">
-          <div className="relative">
+        <div className="mb-3 flex items-center gap-3">
+          <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-300 shadow-sm">
             <img
               src={imagePreview}
               alt="Preview"
-              className="w-20 h-20 object-cover rounded-lg border border-zinc-700"
+              className="object-cover w-full h-full"
             />
             <button
               onClick={removeImage}
-              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-base-300
-              flex items-center justify-center"
-              type="button"
+              className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-red-100 transition"
+              aria-label="Remove image"
             >
-              <X className="size-3" />
+              <X size={16} className="text-red-600" />
             </button>
           </div>
+          <p className="text-gray-600 italic">Image selected</p>
         </div>
       )}
 
-      <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-        <div className="flex-1 flex gap-2">
-          <input
-            type="text"
-            className="w-full input input-bordered rounded-lg input-sm sm:input-md"
-            placeholder="Type a message..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            ref={fileInputRef}
-            onChange={handleImageChange}
-          />
+      <form
+        onSubmit={handleSendMessage}
+        className="flex items-center gap-3"
+        aria-label="Send message form"
+      >
+        <input
+          type="text"
+          className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition text-gray-700 placeholder-gray-400"
+          placeholder="Type your message..."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          aria-label="Message input"
+        />
 
-          <button
-            type="button"
-            className={`hidden sm:flex btn btn-circle
-                     ${imagePreview ? "text-emerald-500" : "text-zinc-400"}`}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Image size={20} />
-          </button>
-        </div>
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          ref={fileInputRef}
+          onChange={handleImageChange}
+        />
+
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="p-2 rounded-full hover:bg-gray-100 transition"
+          aria-label="Attach image"
+          title="Attach image"
+        >
+          <Image size={24} className="text-gray-600" />
+        </button>
+
         <button
           type="submit"
-          className="btn btn-sm btn-circle"
           disabled={!text.trim() && !imagePreview}
+          className={`p-2 rounded-full bg-primary text-white hover:bg-primary-dark disabled:bg-primary/50 disabled:cursor-not-allowed transition-shadow shadow-md flex items-center justify-center`}
+          aria-label="Send message"
+          title="Send message"
         >
-          <Send size={22} />
+          <Send size={24} />
         </button>
       </form>
     </div>
   );
 };
+
 export default MessageInput;

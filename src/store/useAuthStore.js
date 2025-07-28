@@ -1,30 +1,52 @@
 import { create } from "zustand";
 import { io } from "socket.io-client";
+import { persist } from "zustand/middleware";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5050";
 
-export const useAuthStore = create((set, get) => ({
-  authUser: null,
-  socket: null,
-  onlineUsers: [],
+export const useAuthStore = create(
+  persist(
+    (set, get) => ({
+      authUser: null,
+      socket: null,
+      onlineUsers: [],
 
-  setAuthUser: (user) => set({ authUser: user }),
+      setAuthUser: (user) => set({ authUser: user }),
 
-  connectSocket: () => {
-    const user = get().authUser;
-    if (!user || get().socket) return;
+      connectSocket: () => {
+        const user = get().authUser;
 
-    const socket = io(BASE_URL, { query: { userId: user._id } });
-    set({ socket });
+        // ✅ Prevent connection if user or user._id is not defined
+        if (!user || !user._id || get().socket) {
+          console.warn("🔌 Skipping socket connection: user._id is missing or socket already connected.");
+          return;
+        }
 
-    socket.on("getOnlineUsers", (users) => {
-      set({ onlineUsers: users });
-    });
-  },
+        console.log("🔌 Connecting socket for userId:", user._id);
 
-  disconnectSocket: () => {
-    const socket = get().socket;
-    if (socket) socket.disconnect();
-    set({ socket: null });
-  },
-}));
+        const socket = io(BASE_URL, {
+          query: { userId: user._id },
+        });
+
+        set({ socket });
+
+        socket.on("getOnlineUsers", (users) => {
+          set({ onlineUsers: users });
+        });
+      },
+
+      disconnectSocket: () => {
+        const socket = get().socket;
+        if (socket) {
+          socket.disconnect();
+          console.log("🔌 Socket disconnected");
+        }
+        set({ socket: null });
+      },
+    }),
+    {
+      name: "auth-storage",
+      partialize: (state) => ({ authUser: state.authUser }), // Persist only authUser
+    }
+  )
+);

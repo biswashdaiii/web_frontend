@@ -1,33 +1,35 @@
-import { useChatStore } from "../../store/useChatStore.js";
-import { useAuthStore } from "../../store/useAuthStore.js";
+import { useDoctorChatStore } from "../Doctor/useDoctorChatStore.js";
+import { useDoctorAuthStore } from "../Doctor/useDoctorAuthStore.js";
 import { useEffect, useRef } from "react";
 
-import ChatHeader from "./chatHeader.jsx";
-import MessageInput from "./messageInput.jsx";
-import MessageSkeleton from "./messageSkleton.jsx";
+import ChatHeader from "../../../../../web_frontend/src/components/chat/chatHeader.jsx";
+import MessageInput from "../../../../../web_frontend/src/components/chat/messageInput.jsx";
+import MessageSkeleton from "../../../../../web_frontend/src/components/chat/messageSkleton.jsx";
 
-const ChatContainer = () => {
+const DoctorChatContainer = () => {
   const {
     messages,
     getMessages,
     isMessagesLoading,
-    selectedDoctor,
+    selectedUser, // expecting { _id, name, ... }
     subscribeToMessages,
     unsubscribeFromMessages,
-  } = useChatStore();
+  } = useDoctorChatStore();
 
-  const { authUser, backendUrl } = useAuthStore();
+  const { authDoctor, backendUrl } = useDoctorAuthStore();
 
   const messageEndRef = useRef(null);
 
   useEffect(() => {
-    if (!selectedDoctor) return;
+    if (!selectedUser || !selectedUser._id) return;
 
-    getMessages(selectedDoctor._id);
+    console.log("DoctorChatContainer: selectedUser =", selectedUser);
+
+    getMessages(selectedUser._id);
     subscribeToMessages();
 
     return () => unsubscribeFromMessages();
-  }, [selectedDoctor?._id]);
+  }, [selectedUser?._id]);
 
   useEffect(() => {
     if (messageEndRef.current && messages) {
@@ -35,19 +37,18 @@ const ChatContainer = () => {
     }
   }, [messages]);
 
-  // Loading states
-  if (!authUser) {
+  if (!authDoctor) {
     return (
       <div className="flex-1 flex items-center justify-center text-gray-500">
-        Loading user info...
+        Loading doctor info...
       </div>
     );
   }
 
-  if (!selectedDoctor) {
+  if (!selectedUser) {
     return (
       <div className="flex-1 flex items-center justify-center text-gray-500">
-        Please select an appointment to chat
+        Please select a patient to chat
       </div>
     );
   }
@@ -62,7 +63,6 @@ const ChatContainer = () => {
     );
   }
 
-  // Helper: build full image URL or fallback
   const buildProfilePicUrl = (image) => {
     if (!image) return "/avatar.png";
     if (image.startsWith("http")) return image;
@@ -78,33 +78,19 @@ const ChatContainer = () => {
           <div
             key={message._id}
             className={`chat max-w-[70%] ${
-              message.senderId === authUser._id ? "chat-end" : "chat-start"
+              message.senderId === authDoctor._id ? "chat-end" : "chat-start"
             }`}
             ref={index === messages.length - 1 ? messageEndRef : null}
           >
             <div className="chat-image avatar">
               <div className="w-10 h-10 rounded-full border border-gray-300 overflow-hidden">
-                {/* <img
-                  src={
-                    message.senderId === authUser._id
-                      ? buildProfilePicUrl(authUser.profilePic)
-                      : buildProfilePicUrl(selectedDoctor.profilePic)
-                  }
-                  alt="profile pic"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "/avatar.png";
-                  }}
-                  className="object-cover w-full h-full"
-                /> */}
+                {/* Optional: Profile image */}
               </div>
             </div>
             <div className="chat-content max-w-full">
               <div className="chat-header mb-1 flex items-center space-x-2">
                 <span className="font-semibold text-sm text-gray-700">
-                  {message.senderId === authUser._id
-                    ? "You"
-                    : selectedDoctor.name}
+                  {message.senderId === authDoctor._id ? "You" : selectedUser.name}
                 </span>
                 <time className="text-xs text-gray-400">
                   {new Date(message.createdAt).toLocaleTimeString([], {
@@ -134,4 +120,4 @@ const ChatContainer = () => {
   );
 };
 
-export default ChatContainer;
+export default DoctorChatContainer;

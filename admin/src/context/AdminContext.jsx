@@ -32,19 +32,24 @@ const AdminContextProvider = (props) => {
     toast.error("Error fetching doctors");
   }
 };
-const changeAvaiablility=async(docId)=>{
+const changeAvaiablility = async (docId) => {
   try {
-    const{data}=await axios.post(backendUrl+"/api/admin/change-availability",{docId},{headers:{aToken}})
-    if(data.success){
-      toast.success(data.message)
-      getAllDoctors()
-    }else{
-      toast.error(data.message)
+    const { data } = await axios.post(
+      backendUrl + "/api/admin/change-availability",
+      { docId },
+      { headers: { atoken: aToken } }  // lowercase 'atoken'
+    );
+
+    if (data.success) {
+      toast.success(data.message);
+      getAllDoctors();
+    } else {
+      toast.error(data.message);
     }
   } catch (error) {
-     toast.error(error.message);
+    toast.error(error.message);
   }
-}
+};
 
   const value = {
     aToken,

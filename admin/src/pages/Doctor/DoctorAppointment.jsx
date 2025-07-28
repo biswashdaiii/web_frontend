@@ -1,111 +1,116 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
-import { AppContext } from '../context/AppContext.jsx';
-import { initializeSocket } from '../socket.js';
+import React, { useContext, useEffect, useState } from "react";
+import { DoctorContext } from "../../context/DcotorContext.jsx";
+import { toast } from "react-toastify";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-const ChatWindow = ({ appointmentId, chatPartnerName }) => {
-  // Get context for the logged-in user (this works for both patients and doctors)
-  const { token, userData, backendUrl } = useContext(AppContext);
+const DoctorAppointments = () => {
+  const { appointments, getAppointments, backendUrl, dToken } = useContext(DoctorContext);
+  const [localAppointments, setLocalAppointments] = useState([]);
+  const navigate = useNavigate();
 
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [isConnected, setIsConnected] = useState(false);
-
-  // --- THE CORE FIX ---
-  // We use a ref to hold the socket instance.
-  // A ref persists for the full lifetime of the component and doesn't trigger re-renders.
-  const socketRef = useRef(null);
-  const messagesEndRef = useRef(null);
+  // Sync local appointments with context appointments
+  useEffect(() => {
+    setLocalAppointments(appointments);
+  }, [appointments]);
 
   useEffect(() => {
-    // Scroll to the bottom whenever messages change
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (dToken) {
+      getAppointments();
+    } else {
+      toast.error("Doctor not logged in");
+    }
+  }, [dToken]);
 
-  useEffect(() => {
-    // Do not proceed if we don't have the necessary info
-    if (!token || !backendUrl || !appointmentId) return;
-
-    // Initialize the socket
-    const socket = initializeSocket(backendUrl, token);
-    // Store the live socket instance in our ref
-    socketRef.current = socket;
-
-    // --- Define Event Handlers ---
-    const onConnect = () => {
-      setIsConnected(true);
-      socket.emit('join_room', { appointmentId });
-    };
-    const onDisconnect = () => setIsConnected(false);
-    const onLoadHistory = (chatHistory) => setMessages(chatHistory);
-    const onReceiveMessage = (message) => setMessages(prev => [...prev, message]);
-
-    // --- Register Listeners ---
-    socket.on('connect', onConnect);
-    socket.on('disconnect', onDisconnect);
-    socket.on('load_history', onLoadHistory);
-    socket.on('receive_message', onReceiveMessage);
-
-    // Finally, connect the socket
-    socket.connect();
-
-    // --- Cleanup Function ---
-    // This runs when the component is unmounted (e.g., user leaves the page)
-    return () => {
-      socket.disconnect();
-    };
-  }, [appointmentId, token, backendUrl]); // Re-establish connection if these details change
-
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    // Check for message text, connection status, the user object, and if the socket exists in our ref
-    if (newMessage.trim() && isConnected && userData?._id && socketRef.current) {
-      const messageData = {
-        appointmentId,
-        senderId: userData._id,
-        text: newMessage,
-      };
-
-      // --- THE CORE FIX ---
-      // Emit the message using the stable socket instance from the ref.
-      socketRef.current.emit('send_message', messageData);
-
-      // Optimistically update our own UI for a snappy feel
-      const optimisticMessage = {
-        ...messageData,
-        _id: Date.now().toString(),
-        sender: { _id: userData._id },
-        createdAt: new Date().toISOString(),
-      };
-      setMessages(prev => [...prev, optimisticMessage]);
-      setNewMessage('');
+  const cancelAppointment = async (appointmentId) => {
+    try {
+      const url = `${backendUrl}/api/doctor/cancel-appointment`;
+      const { data } = await axios.post(
+        url,
+        { appointmentId },
+        { headers: { Authorization: `Bearer ${dToken}` } }
+      );
+      if (data.success) {
+        toast.success(data.message);
+        setLocalAppointments((prev) => prev.filter((item) => item._id !== appointmentId));
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to cancel appointment");
     }
   };
 
+  const handleChat = (appointment) => {
+    navigate("/doctor-chat", { state: { user: appointment.userData } }); // ✅ Fix: pass patient (user)
+
+  };
+
   return (
-    <div className="flex flex-col h-[calc(100vh-10rem)] w-full max-w-4xl mx-auto bg-white rounded-lg shadow-xl border">
-      <div className="p-4 border-b flex items-center space-x-3">
-        <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'} transition-colors`}></div>
-        <h2 className="text-xl font-semibold text-gray-800">Chat with {chatPartnerName}</h2>
-      </div>
-      <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-gray-50">
-        {messages.map((msg) => (
-          <div key={msg._id} className={`flex items-end gap-2 ${msg.sender._id === userData._id ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-md px-4 py-2 rounded-xl ${msg.sender._id === userData._id ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}>
-              <p className="text-sm">{msg.text}</p>
-              <div className="text-xs text-right mt-1 opacity-75">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+    <div className="min-h-screen px-4 py-6">
+      <h2 className="text-xl font-semibold mb-6 text-gray-800">
+        Appointments for Doctor
+      </h2>
+
+      <div className="flex flex-col gap-4">
+        {localAppointments.length === 0 ? (
+          <p className="text-gray-600">No appointments found.</p>
+        ) : (
+          localAppointments.map((item, index) => (
+            <div
+              key={item._id || index}
+              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border p-4 rounded-lg shadow-sm bg-white"
+            >
+              {/* Patient Info */}
+              <div className="flex items-start gap-4">
+                <img
+                  src="/default-user.png"
+                  alt={item.userData?.name || "Patient"}
+                  className="w-16 h-16 object-cover rounded-full border"
+                />
+                <div className="text-gray-700 text-sm">
+                  <p className="font-semibold text-base text-black">
+                    {item.userData?.name}
+                  </p>
+                  <p className="text-gray-600">
+                    <span className="font-medium">Email:</span>{" "}
+                    {item.userData?.email}
+                  </p>
+                  <p className="text-gray-600 mt-1">
+                    <span className="font-medium">Date & Time:</span>{" "}
+                    {item.slotDate} | {item.slotTime}
+                  </p>
+                  {/* Fee info removed here */}
+                  <p className="text-gray-600 mt-1">
+                    <span className="font-medium">Status:</span>{" "}
+                    {item.paymentStatus || "Pending"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-2 ml-auto mt-4 sm:mt-0">
+                <button
+                  onClick={() => cancelAppointment(item._id)}
+                  className="px-4 py-2 border border-gray-400 rounded hover:bg-red-100 hover:text-red-600 transition"
+                >
+                  Cancel Appointment
+                </button>
+
+                <button
+                  onClick={() => handleChat(item)}
+                  className="px-4 py-2 border border-blue-400 rounded hover:bg-blue-100 hover:text-blue-600 transition"
+                >
+                  Chat
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
-      <div className="p-4 bg-white border-t">
-        <form onSubmit={handleSendMessage} className="flex space-x-3">
-          <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type your message..." className="flex-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          <button type="submit" disabled={!newMessage.trim() || !isConnected} className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 disabled:opacity-50">Send</button>
-        </form>
+          ))
+        )}
       </div>
     </div>
   );
 };
 
-export default ChatWindow;
+export default DoctorAppointments;

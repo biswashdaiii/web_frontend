@@ -4,9 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AppContext } from "../context/AppContext";
+import { useAuthStore } from "../store/useAuthStore";
 
 const Login = () => {
-const { backendUrl, token, setToken, setUserData } = useContext(AppContext);
+  const { backendUrl, token, setToken, setUserData } = useContext(AppContext);
 
   const [state, setState] = useState("Sign up");
   const [email, setEmail] = useState("");
@@ -44,11 +45,14 @@ const { backendUrl, token, setToken, setUserData } = useContext(AppContext);
         setState("Login");
         setPassword("");
       } else if (res.data.token && res.data.user) {
-             setToken(res.data.token);
-             setUserData(res.data.user)
+        setToken(res.data.token);
+        setUserData(res.data.user);
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user)); // ✅ Store user info
-     
+        const { setAuthUser, connectSocket } = useAuthStore.getState();
+        setAuthUser(res.data.user);
+        connectSocket();
+
         toast.success("Login successful!");
         navigate("/");
       }

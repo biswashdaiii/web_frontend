@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import axios from "axios";
 import { ToastContainer } from "react-toastify";
+import { useAuthStore } from "../store/useAuthStore";
 
 export const AppContext = createContext(null);
 
@@ -10,8 +11,7 @@ const AppContextProvider = (props) => {
     const savedUser = localStorage.getItem("user");
     return savedUser ? JSON.parse(savedUser) : null;
   });
-  
-  // --- FIX IS HERE: Keep the state and fetch logic for doctors ---
+
   const [doctors, setDoctors] = useState([]);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -30,15 +30,21 @@ const AppContextProvider = (props) => {
   useEffect(() => {
     getDoctorsData();
   }, []);
-  // -----------------------------------------------------------------
 
-  // This effect handles user session persistence
+  // Sync user & token with Zustand store and connect socket only after user._id is ready
   useEffect(() => {
     if (token && userData) {
-      console.log("AppContextProvider token:", token);
-      console.log("AppContextProvider userData:", userData);
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(userData));
+
+      const { setAuthUser, connectSocket, socket } = useAuthStore.getState();
+
+      setAuthUser(userData);
+
+      // Connect socket only if authUser._id exists and socket is not already connected
+      if (userData._id && (!socket || !socket.connected)) {
+        connectSocket();
+      }
     } else {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
@@ -46,19 +52,24 @@ const AppContextProvider = (props) => {
   }, [token, userData]);
 
   const value = {
-    doctors, // Make sure to provide doctors in the context value
+    doctors,
     token,
     setToken,
     backendUrl,
     userData,
     setUserData,
-    getDoctorsData, 
+    getDoctorsData,
   };
 
   return (
     <AppContext.Provider value={value}>
       {props.children}
-      <ToastContainer position="top-right" autoClose={3000} pauseOnHover theme="colored" />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        pauseOnHover
+        theme="colored"
+      />
     </AppContext.Provider>
   );
 };
