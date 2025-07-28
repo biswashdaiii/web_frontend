@@ -34,16 +34,26 @@ export const useChatStore = create((set, get) => ({
   setSelectedDoctor: (doctor) => set({ selectedDoctor: doctor }),
 
   subscribeToMessages: () => {
-    const socket = useAuthStore.getState().socket;
-    const selectedDoctor = get().selectedDoctor;
-    if (!socket || !selectedDoctor) return;
+  const socket = useAuthStore.getState().socket;
+  const selectedDoctor = get().selectedDoctor;
+  const authUser = useAuthStore.getState().authUser;
 
-    socket.on("newMessage", (newMessage) => {
-      if (newMessage.senderId === selectedDoctor._id) {
-        set({ messages: [...get().messages, newMessage] });
-      }
-    });
-  },
+  if (!socket || !selectedDoctor || !authUser) return;
+
+  socket.off("newMessage"); // Remove previous listeners to prevent duplicates
+
+  socket.on("newMessage", (newMessage) => {
+    const isRelevant =
+      (newMessage.senderId === authUser._id && newMessage.receiverId === selectedDoctor._id) ||
+      (newMessage.receiverId === authUser._id && newMessage.senderId === selectedDoctor._id);
+
+    if (isRelevant) {
+      set((state) => ({ messages: [...state.messages, newMessage] }));
+    }
+  });
+},
+
+
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;

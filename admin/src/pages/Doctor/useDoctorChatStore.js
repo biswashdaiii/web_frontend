@@ -5,7 +5,8 @@ import { axiosInstance } from "../../../../../web_frontend/src/lib/axios.js";
 
 export const useDoctorChatStore = create((set, get) => ({
   messages: [],
-  selectedUser: null, // Expecting { user: {...} } or just user object? Let's keep {user} for now
+  selectedUser: null, // Expecting { user: {...} }
+
   isMessagesLoading: false,
 
   getUsersForSidebar: async () => {
@@ -19,6 +20,11 @@ export const useDoctorChatStore = create((set, get) => ({
   },
 
   getMessages: async (userId) => {
+    if (!userId) {
+      toast.error("No user selected");
+      return;
+    }
+
     set({ isMessagesLoading: true });
     try {
       const res = await axiosInstance.get(`/api/doctor/messages/${userId}`);
@@ -32,15 +38,16 @@ export const useDoctorChatStore = create((set, get) => ({
 
   sendMessage: async (messageData) => {
     const { selectedUser, messages } = get();
+    const userId = selectedUser?.user?._id;
 
-    if (!selectedUser || !selectedUser._id) {
+    if (!userId) {
       toast.error("No user selected");
       return;
     }
 
     try {
       const res = await axiosInstance.post(
-        `/api/doctor/messages/send/${selectedUser._id}`,
+        `/api/doctor/messages/send/${userId}`,
         messageData
       );
       set({ messages: [...messages, res.data] });
@@ -57,12 +64,14 @@ export const useDoctorChatStore = create((set, get) => ({
   subscribeToMessages: () => {
     const socket = useDoctorAuthStore.getState().socket;
     const selectedUser = get().selectedUser;
-    if (!socket || !selectedUser || !selectedUser._id) return;
+    const userId = selectedUser?.user?._id;
+
+    if (!socket || !userId) return;
 
     socket.on("newMessage", (newMessage) => {
       if (
-        newMessage.senderId === selectedUser._id ||
-        newMessage.receiverId === selectedUser._id
+        newMessage.senderId === userId ||
+        newMessage.receiverId === userId
       ) {
         set({ messages: [...get().messages, newMessage] });
       }
