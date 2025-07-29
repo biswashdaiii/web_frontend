@@ -42,42 +42,42 @@ const MyProfile = () => {
     }
   };
 
-  const handleSave = async () => {
-    const formData = new FormData();
-    formData.append("name", editData.name);
-    formData.append("email", userData.email); // Required for backend
-    formData.append("phone", editData.phone);
-    formData.append("address", editData.address);
-    if (editData.image) {
-      formData.append("image", editData.image);
-    }
-    formData.append("userId", userData._id || userData.id); // Pass userId for update
+ const handleSave = async () => {
+  const formData = new FormData();
+  formData.append("name", editData.name);
+  formData.append("email", userData.email); // Required for backend
+  formData.append("phone", editData.phone);
+  formData.append("address", editData.address);
+  if (editData.image) {
+    formData.append("image", editData.image);
+  }
 
-    try {
-      const response = await axios.put(
-        `${backendUrl}/api/user/update-profile`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (response.data.success) {
-        setUserData(response.data.user);
-        setIsEdit(false);
-        alert("Profile updated successfully!");
+  try {
+    const response = await axios.put(
+      `${backendUrl}/api/user/update-profile`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
       }
-    } catch (error) {
-      console.error("Failed to update profile:", error);
-      alert(
-        "Error: " +
-          (error.response?.data?.message || "Failed to update profile.")
-      );
+    );
+
+    if (response.data.success) {
+      setUserData(response.data.user);
+      setIsEdit(false);
+      alert("Profile updated successfully!");
     }
-  };
+  } catch (error) {
+    console.error("Failed to update profile:", error);
+    alert(
+      "Error: " +
+        (error.response?.data?.message || "Failed to update profile.")
+    );
+  }
+};
+
 
   if (!userData) {
     return <p className="text-center mt-10">Loading profile...</p>;
