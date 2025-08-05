@@ -39,7 +39,6 @@
 
             {/* Doctor Routes */}
             <Route path="/doctor-chat" element={<DoctorChat />} />
-            
             <Route path="/doctor-appointments" element={<DoctorAppointment />} />
           </Routes>
         </div>
